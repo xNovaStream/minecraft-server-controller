@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Управление Minecraft-сервером</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: #1a1a2e;
+            padding: 25px 30px 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            border: 1px solid #2a2a44;
+        }
+        h1 {
+            margin-top: 0;
+            font-weight: 400;
+            font-size: 26px;
+            color: #c0c0ff;
+            border-bottom: 1px solid #2a2a44;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .button-start-wrap {
+            margin: 18px 0 10px;
+        }
+        .button-start-wrap button {
+            width: 100%;
+            padding: 12px;
+            font-size: 17px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s;
+            color: #fff;
+            background: #00c853;
+        }
+        .button-start-wrap button:hover:not(:disabled) {
+            background: #00e676;
+            transform: translateY(-1px);
+        }
+        .button-start-wrap button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .monitor-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 14px;
+        }
+        .monitor-buttons button {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s;
+            color: #fff;
+            background: #3a3a5c;
+        }
+        .monitor-buttons button:hover:not(:disabled) {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+        .monitor-buttons button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-enable {
+            background: #2979ff;
+        }
+        .btn-enable:hover:not(:disabled) {
+            background: #448aff;
+        }
+        .btn-disable {
+            background: #ff1744;
+        }
+        .btn-disable:hover:not(:disabled) {
+            background: #ff5252;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0 12px;
+            background: #12121f;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #2a2a44;
+            justify-items: center;
+        }
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .status-label {
+            font-size: 12px;
+            color: #8888aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+        .status-value {
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        /* Цвета для статусов */
+        .badge-active     { background: #00c853; }  /* зелёный */
+        .badge-stopped    { background: #ff1744; }  /* красный */
+        .badge-starting   { background: #ff9100; }  /* оранжевый */
+        .badge-stopping   { background: #ff9100; }  /* оранжевый */
+        .badge-rebooting  { background: #ff9100; }  /* оранжевый */
+        .badge-building   { background: #ff9100; }  /* оранжевый */
+        .badge-resizing   { background: #ff9100; }  /* оранжевый */
+        .badge-deleting   { background: #ff9100; }  /* оранжевый */
+        .badge-blocked    { background: #9c27b0; }  /* фиолетовый */
+        .badge-error      { background: #d32f2f; }  /* тёмно-красный */
+        .badge-unknown    { background: #616161; }  /* серый */
+
+        .badge-monitor-on  { background: #2979ff; }
+        .badge-monitor-off { background: #616161; }
+
+        #log {
+            margin-top: 12px;
+            padding: 6px 0 6px 4px;
+            background: #0d0d1a;
+            border-radius: 10px;
+            border: 1px solid #2a2a44;
+            max-height: 220px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            color: #b0b0d0;
+            line-height: 1.5;
+            text-align: left;
+        }
+        #log:empty {
+            display: none;
+        }
+        #log::-webkit-scrollbar {
+            width: 5px;
+        }
+        #log::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        #log::-webkit-scrollbar-thumb {
+            background: #3a3a5c;
+            border-radius: 4px;
+        }
+        .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        .log-error {
+            color: #ff5252;
+        }
+        .log-success {
+            color: #69f0ae;
+        }
+        .log-info {
+            color: #82b1ff;
+        }
+        .log-time {
+            color: #666;
+            margin-right: 8px;
+        }
+        .footer {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🎮 Управление сервером</h1>
+
+    <div class="button-start-wrap">
+        <button id="startBtn">▶ Запустить</button>
+    </div>
+
+    <div class="monitor-buttons">
+        <button id="enableMonitorBtn" class="btn-enable">✅ Включить мониторинг</button>
+        <button id="disableMonitorBtn" class="btn-disable">⛔ Отключить мониторинг</button>
+    </div>
+
+    <div class="status-grid">
+        <div class="status-item">
+            <span class="status-label">Статус сервера</span>
+            <span class="status-value" id="serverStatus">
+                <span class="badge badge-unknown">Загрузка...</span>
+            </span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Мониторинг</span>
+            <span class="status-value" id="monitorStatus">
+                <span class="badge badge-unknown">Загрузка...</span>
+            </span>
+        </div>
+    </div>
+
+    <div id="log"></div>
+
+    <div class="footer">Обновление статуса каждые 30 секунд</div>
+</div>
+
+<script>
+    const serverStatusEl = document.getElementById('serverStatus');
+    const monitorStatusEl = document.getElementById('monitorStatus');
+    const startBtn = document.getElementById('startBtn');
+    const logDiv = document.getElementById('log');
+
+    function addLog(message, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry log-' + type;
+        const time = new Date().toLocaleTimeString();
+        entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+        logDiv.appendChild(entry);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function updateStatus() {
+        fetch('/server/status')
+            .then(res => res.json())
+            .then(data => {
+                const status = data.status;
+                let badgeClass, label, startDisabled = true;
+                switch(status) {
+                    case 'ACTIVE':
+                        badgeClass = 'badge-active';
+                        label = '✅ Активен';
+                        startDisabled = true;
+                        break;
+                    case 'STOPPED':
+                        badgeClass = 'badge-stopped';
+                        label = '⛔ Остановлен';
+                        startDisabled = false;  // единственный статус, когда можно запустить
+                        break;
+                    case 'STARTING':
+                        badgeClass = 'badge-starting';
+                        label = '⏳ Запускается...';
+                        startDisabled = true;
+                        break;
+                    case 'STOPPING':
+                        badgeClass = 'badge-stopping';
+                        label = '⏳ Останавливается...';
+                        startDisabled = true;
+                        break;
+                    case 'REBOOTING':
+                        badgeClass = 'badge-rebooting';
+                        label = '⏳ Перезагружается...';
+                        startDisabled = true;
+                        break;
+                    case 'BUILDING':
+                        badgeClass = 'badge-building';
+                        label = '⏳ Создаётся...';
+                        startDisabled = true;
+                        break;
+                    case 'RESIZING':
+                        badgeClass = 'badge-resizing';
+                        label = '⏳ Изменение ресурсов...';
+                        startDisabled = true;
+                        break;
+                    case 'BLOCKED':
+                        badgeClass = 'badge-blocked';
+                        label = '🚫 Заблокирован';
+                        startDisabled = true;
+                        break;
+                    case 'DELETING':
+                        badgeClass = 'badge-deleting';
+                        label = '⏳ Удаляется...';
+                        startDisabled = true;
+                        break;
+                    case 'ERROR':
+                        badgeClass = 'badge-error';
+                        label = '❌ Ошибка';
+                        startDisabled = true;
+                        break;
+                    case 'UNKNOWN':
+                    default:
+                        badgeClass = 'badge-unknown';
+                        label = '❓ Неизвестно (' + status + ')';
+                        startDisabled = true;
+                }
+                serverStatusEl.innerHTML = `<span class="badge ${badgeClass}">${label}</span>`;
+                startBtn.disabled = startDisabled;
+            })
+            .catch(() => {
+                serverStatusEl.innerHTML = `<span class="badge badge-unknown">❌ Ошибка получения статуса</span>`;
+                startBtn.disabled = true;
+            });
+
+        fetch('/monitoring/status')
+            .then(res => res.json())
+            .then(data => {
+                const enabled = data.enabled;
+                const badgeClass = enabled ? 'badge-monitor-on' : 'badge-monitor-off';
+                const label = enabled ? '🟢 Включён' : '🔴 Отключён';
+                monitorStatusEl.innerHTML = `<span class="badge ${badgeClass}">${label}</span>`;
+            })
+            .catch(() => {
+                monitorStatusEl.innerHTML = `<span class="badge badge-unknown">❌ Ошибка получения статуса</span>`;
+            });
+    }
+
+    function sendRequest(url, method, successMsg, errorMsg) {
+        fetch(url, { method: method })
+            .then(res => res.json())
+            .then(data => {
+                const msg = data.message || 'OK';
+                if (data.status === 'ok' || data.status === 'warning' || data.message) {
+                    addLog(successMsg + ': ' + msg, 'success');
+                } else {
+                    addLog('⚠️ ' + errorMsg + ': ' + msg, 'error');
+                }
+                updateStatus();
+            })
+            .catch(err => {
+                addLog('❌ ' + errorMsg + ': ' + err, 'error');
+            });
+    }
+
+    startBtn.onclick = function() {
+        sendRequest('/start-minecraft', 'POST', 'Запуск', 'Ошибка запуска');
+    };
+    document.getElementById('enableMonitorBtn').onclick = function() {
+        sendRequest('/monitoring', 'POST', 'Включение мониторинга', 'Ошибка включения');
+    };
+    document.getElementById('disableMonitorBtn').onclick = function() {
+        sendRequest('/monitoring', 'DELETE', 'Отключение мониторинга', 'Ошибка отключения');
+    };
+
+    updateStatus();
+    setInterval(updateStatus, 30000);
+</script>
+</body>
+</html>
