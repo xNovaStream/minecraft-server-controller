@@ -58,7 +58,7 @@ def disable_monitoring():
         logger.error(f"Ошибка при отключении мониторинга: {e}")
         return jsonify({"message": str(e)}), 500
 
-@app.route("/monitoring", methods=["GET"])
+@app.route("/monitoring/status", methods=["GET"])
 def monitoring_status():
     """Возвращает текущее состояние мониторинга (для обновления на странице)"""
     return jsonify({"enabled": is_monitor_enabled()}), 200
