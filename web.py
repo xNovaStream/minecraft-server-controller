@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, jsonify, render_template
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 from config import (
     logger,
     MINECRAFT_SERVER_ID,
@@ -8,16 +10,30 @@ from config import (
     try_start_server,
     enable_monitor,
     disable_monitor,
-    is_monitor_enabled
+    is_monitor_enabled,
+    ADMIN_USERNAME,
+    ADMIN_PASSWORD
 )
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+admins = {
+    ADMIN_USERNAME: generate_password_hash(ADMIN_PASSWORD)
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in admins and check_password_hash(admins.get(username), password):
+        return username
 
 @app.route("/")
+@auth.login_required
 def index():
     return render_template("index.html")
 
 @app.route("/start-minecraft", methods=["POST"])
+@auth.login_required
 def start_minecraft():
     try:
         status = get_server_status(MINECRAFT_SERVER_ID)
@@ -41,6 +57,7 @@ def start_minecraft():
         return jsonify({"message": str(e)}), 500
     
 @app.route("/monitoring", methods=["POST"])
+@auth.login_required
 def enable_monitoring():
     try:
         enable_monitor()
@@ -50,6 +67,7 @@ def enable_monitoring():
         return jsonify({"message": str(e)}), 500
 
 @app.route("/monitoring", methods=["DELETE"])
+@auth.login_required
 def disable_monitoring():
     try:
         disable_monitor()
@@ -59,11 +77,13 @@ def disable_monitoring():
         return jsonify({"message": str(e)}), 500
 
 @app.route("/monitoring/status", methods=["GET"])
+@auth.login_required
 def monitoring_status():
     """Возвращает текущее состояние мониторинга (для обновления на странице)"""
     return jsonify({"enabled": is_monitor_enabled()}), 200
 
 @app.route("/server/status", methods=["GET"])
+@auth.login_required
 def server_status():
     """Возвращает текущий статус Minecraft-сервера"""
     status = get_server_status(MINECRAFT_SERVER_ID)

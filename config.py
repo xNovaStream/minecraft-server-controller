@@ -2,13 +2,19 @@ import time
 import os
 import requests
 import logging
+from dotenv import load_dotenv
 from mcstatus import JavaServer
 
 # Configs
-CLOUD_API_TOKEN = "ваш_токен"
-MINECRAFT_SERVER_ID = "id_сервера_майнкрафт"
+load_dotenv()
 
-MINECRAFT_HOST = "ip_или_хост_майнкрафт"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+
+CLOUD_API_TOKEN = os.getenv("CLOUD_API_TOKEN")
+MINECRAFT_SERVER_ID = os.getenv("MINECRAFT_SERVER_ID")
+
+MINECRAFT_HOST = os.getenv("MINECRAFT_HOST")
 MINECRAFT_PORT = 25565
 IDLE_TIMEOUT = 3600
 CHECK_INTERVAL_RUNNING = 60
@@ -37,7 +43,7 @@ def get_server_status(server_id):
         resp.raise_for_status()
         return resp.json()["result"]["status"]
     except Exception as e:
-        logger.warning(f"Ошибка при получении статуса сервера: {e}")
+        logger.error(f"Ошибка при получении статуса сервера: {e}")
         return "UNKNOWN"
 
 def wait_server_status(server_id, waiting_status, timeout = 300, request_frequency = 10):
@@ -76,7 +82,7 @@ def get_online_players(minecraft_ip_address):
         status = server.status()
         return status.players.online
     except Exception as e:
-        logger.error(f"Ошибка при получении онлайна: {e}")
+        logger.warning(f"Ошибка при получении онлайна: {e}")
         return -1
 
 # Monitoring Control
