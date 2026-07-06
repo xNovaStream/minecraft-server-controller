@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, send_from_directory
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import (
@@ -88,6 +88,10 @@ def server_status():
     """Возвращает текущий статус Minecraft-сервера"""
     status = get_server_status(MINECRAFT_SERVER_ID)
     return jsonify({"status": status}), 200
+
+@app.route('/favicon.svg')
+def favicon():
+    return send_from_directory(app.root_path, 'favicon.svg', mimetype='image/svg+xml')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
