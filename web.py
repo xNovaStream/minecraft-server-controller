@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import threading
 from flask import Flask, jsonify, render_template, send_from_directory
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +15,11 @@ from config import (
     ADMIN_USERNAME,
     ADMIN_PASSWORD
 )
+
+def wait_for_starting_monitor():
+    if wait_server_status(MINECRAFT_SERVER_ID, "ACTIVE"):
+        logger.info(f"Сервер {MINECRAFT_SERVER_ID} запущен")
+        enable_monitor()
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -45,12 +51,8 @@ def start_minecraft():
         if not try_start_server(MINECRAFT_SERVER_ID):
             return jsonify({"message": "Ошибка при попытке запуска сервера"}), 500
 
-        if not wait_server_status(MINECRAFT_SERVER_ID, "ACTIVE"):
-            return jsonify({"message": "Сервер не запустился за отведенное время"}), 500
-
-        logger.info(f"Сервер {MINECRAFT_SERVER_ID} запущен")
-        enable_monitor()
-        return jsonify({"message": "Сервер запущен"}), 200
+        threading.Thread(target=wait_for_starting_monitor, daemon=True).start()
+        return jsonify({"message": "Сервер запускается"}), 202
 
     except Exception as e:
         logger.error(f"Ошибка при старте: {e}")

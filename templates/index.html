@@ -356,7 +356,6 @@
 
     startBtn.onclick = function() {
         sendRequest('/start-minecraft', 'POST', 'Запуск', 'Ошибка запуска');
-        updateStatus();
     };
     document.getElementById('enableMonitorBtn').onclick = function() {
         sendRequest('/monitoring', 'POST', 'Включение мониторинга', 'Ошибка включения');
