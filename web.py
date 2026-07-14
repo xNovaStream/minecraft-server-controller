@@ -3,6 +3,7 @@ import threading
 from flask import Flask, jsonify, render_template, send_from_directory
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import (
     logger,
     MINECRAFT_SERVER_ID,
@@ -22,6 +23,8 @@ def wait_for_starting_monitor():
         enable_monitor()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+
 auth = HTTPBasicAuth()
 
 admins = {
